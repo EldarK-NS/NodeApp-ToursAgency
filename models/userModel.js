@@ -9,8 +9,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'A user must have a name!'],
     minlenght: [5, 'A user name mast have more or equal then 5 characters!'],
-    maxlength: [10, 'A user name mast have less or equal then 10 characters!'],
-    trim: true,
+    maxlength: [15, 'A user name mast have less or equal then 10 characters!'],
+    trim: true, //удаление пробелов
   },
   email: {
     type: String,
@@ -40,13 +40,18 @@ const userSchema = new mongoose.Schema({
       //this only works on Create and Save!
       validator: function (el) {
         return el === this.password;
-      },
+      }, // 3-rd party library-validator
       message: 'Passwords are not the same',
     },
   },
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false, //свойство select - отображение поля при выводе досумента(false-скрыто)
+  },
 });
 
 //!hash a password
@@ -61,9 +66,15 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-userSchema.pre('save', async function (next) {
+userSchema.pre('save', function (next) {
   if (!this.isModified('password') || this.isNew) return next();
   this.passwordChangedAt = Date.now() - 1000;
+  next();
+});
+
+//middleware hide inactivate users when we get all users list, this middleware start works if wi use methods with "find" like findOne, findBy..
+userSchema.pre(/^find/, function (next) {
+  this.find({ active: { $ne: false } });
   next();
 });
 

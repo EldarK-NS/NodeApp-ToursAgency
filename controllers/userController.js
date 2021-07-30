@@ -21,6 +21,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
   });
 });
 
+//!UPDATE USER
 exports.updateMe = catchAsync(async (req, res, next) => {
   if (req.body.password || req.body.passwordConfirm) {
     return next(
@@ -30,10 +31,9 @@ exports.updateMe = catchAsync(async (req, res, next) => {
       400
     );
   }
-
   //filtered out unwanted fields names that are not allowed to be updated
   const filteredBody = filterObj(req.body, 'name', 'email');
-  
+
   // update user document
   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
     new: true,
@@ -45,6 +45,16 @@ exports.updateMe = catchAsync(async (req, res, next) => {
       user: updatedUser,
     },
   });
+});
+
+//!DELETE USER
+
+exports.deleteMe = catchAsync(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user.id, { active: false });
+  res.status(204).json({
+     status:'success',
+     data:null
+  })
 });
 
 exports.getUser = (req, res) => {
