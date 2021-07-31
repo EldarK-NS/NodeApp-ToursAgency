@@ -10,13 +10,17 @@ router.post('/signup', authController.signup);
 router.post('/login', authController.login);
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
-router.patch(
-  '/updateMyPassword',
-  authController.protect,
-  authController.updatePassword
-);
-router.patch('/updateMe', authController.protect, userController.updateMe);
-router.delete('/deleteMe', authController.protect, userController.deleteMe);
+
+//!Все что будет идти ниже этой функции будет защищено "authController.protect"
+router.use(authController.protect);
+router.patch('/updateMyPassword', authController.updatePassword);
+
+router.get('/me', userController.getMe, userController.getUser);
+router.patch('/updateMe', userController.updateMe);
+router.delete('/deleteMe', userController.deleteMe);
+
+//!Все что будет идти ниже этой функции будет защищено "authController.protect" + "authController.restrictTo('admin')"
+router.use(authController.restrictTo('admin'));
 
 router
   .route('/')

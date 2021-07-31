@@ -2,6 +2,7 @@
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const factory = require('./handlerFactory');
 
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
@@ -11,15 +12,11 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find();
-  //send response
-  res.status(200).json({
-    status: 'success',
-    results: users.length,
-    data: { users },
-  });
-});
+//Middleware which embeds in userRoutes and get current user
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
 
 //!UPDATE USER
 exports.updateMe = catchAsync(async (req, res, next) => {
@@ -48,36 +45,25 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 });
 
 //!DELETE USER
-
 exports.deleteMe = catchAsync(async (req, res, next) => {
   await User.findByIdAndUpdate(req.user.id, { active: false });
   res.status(204).json({
-     status:'success',
-     data:null
-  })
+    status: 'success',
+    data: null,
+  });
 });
 
-exports.getUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'rout not defined',
-  });
-};
 exports.createUser = (req, res) => {
   res.status(500).json({
     status: 'error',
-    message: 'rout not defined',
+    message: 'This rout is not defined! Please use signup instead',
   });
 };
-exports.updateUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'rout not defined',
-  });
-};
-exports.deleteUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'rout not defined',
-  });
-};
+
+//!GET ONE USER
+exports.getUser = factory.getOne(User);
+//!GET ALL USERS
+exports.getAllUsers = factory.getAll(User);
+//Do NOT update password with this!
+exports.updateUser = factory.updateOne(User);
+exports.deleteUser = factory.deleteOne(User);

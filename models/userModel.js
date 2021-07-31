@@ -4,55 +4,64 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'A user must have a name!'],
-    minlenght: [5, 'A user name mast have more or equal then 5 characters!'],
-    maxlength: [15, 'A user name mast have less or equal then 10 characters!'],
-    trim: true, //удаление пробелов
-  },
-  email: {
-    type: String,
-    required: [true, 'Please provide your email'],
-    unique: true,
-    lowercase: true,
-    validate: [validator.isEmail, 'Please provide a valid email!'],
-  },
-  photo: {
-    type: String,
-  },
-  role: {
-    type: String,
-    enum: ['user', 'guide', 'lead-guide', 'admin'],
-    default: 'user',
-  },
-  password: {
-    type: String,
-    required: [true, 'Please provide a password'],
-    minlenght: 6,
-    select: false,
-  },
-  passwordConfirm: {
-    type: String,
-    required: [true, 'Please comfirm your password'],
-    validate: {
-      //this only works on Create and Save!
-      validator: function (el) {
-        return el === this.password;
-      }, // 3-rd party library-validator
-      message: 'Passwords are not the same',
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'A user must have a name!'],
+      minlenght: [5, 'A user name mast have more or equal then 5 characters!'],
+      maxlength: [
+        15,
+        'A user name mast have less or equal then 10 characters!',
+      ],
+      trim: true, //удаление пробелов
+    },
+    email: {
+      type: String,
+      required: [true, 'Please provide your email'],
+      unique: true,
+      lowercase: true,
+      validate: [validator.isEmail, 'Please provide a valid email!'],
+    },
+    photo: {
+      type: String,
+    },
+    role: {
+      type: String,
+      enum: ['user', 'guide', 'lead-guide', 'admin'],
+      default: 'user',
+    },
+    password: {
+      type: String,
+      required: [true, 'Please provide a password'],
+      minlenght: 6,
+      select: false,
+    },
+    passwordConfirm: {
+      type: String,
+      required: [true, 'Please comfirm your password'],
+      validate: {
+        //this only works on Create and Save!
+        validator: function (el) {
+          return el === this.password;
+        }, // 3-rd party library-validator
+        message: 'Passwords are not the same',
+      },
+    },
+    passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date,
+    active: {
+      type: Boolean,
+      default: true,
+      select: false, //свойство select - отображение поля при выводе досумента(false-скрыто)
     },
   },
-  passwordChangedAt: Date,
-  passwordResetToken: String,
-  passwordResetExpires: Date,
-  active: {
-    type: Boolean,
-    default: true,
-    select: false, //свойство select - отображение поля при выводе досумента(false-скрыто)
-  },
-});
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
 
 //!hash a password
 userSchema.pre('save', async function (next) {
